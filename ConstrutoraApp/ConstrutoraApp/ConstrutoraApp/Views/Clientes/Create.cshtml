@@ -1,0 +1,8 @@
+@model ConstrutoraApp.Models.Cliente
+<h2>Novo Cliente</h2>
+<form asp-action="Create">
+    <input asp-for="Nome" class="form-control" placeholder="Nome" />
+    <input asp-for="Email" class="form-control" placeholder="Email" />
+    <input asp-for="Telefone" class="form-control" placeholder="Telefone" />
+    <button type="submit" class="btn btn-primary">Salvar</button>
+</form>

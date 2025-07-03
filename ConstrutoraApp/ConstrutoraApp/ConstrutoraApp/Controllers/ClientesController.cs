@@ -1,48 +1,94 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ConstrutoraApp.Data;
 using ConstrutoraApp.Models;
-using ConstrutoraApp.Data.Repositories;
 
 namespace ConstrutoraApp.Controllers
 {
     public class ClientesController : Controller
     {
-        private readonly IGenericRepository<Cliente> _repository;
+        private readonly AppDbContext _context;
 
-        public ClientesController(IGenericRepository<Cliente> repository)
+        public ClientesController(AppDbContext context)
         {
-            _repository = repository;
+            _context = context;
         }
 
-        public async Task<IActionResult> Index() => View(await _repository.GetAllAsync());
+        public async Task<IActionResult> Index()
+        {
+            return View(await _context.Clientes.ToListAsync());
+        }
 
-        public async Task<IActionResult> Details(int id) => View(await _repository.GetByIdAsync(id));
-
-        public IActionResult Create() => View();
+        public IActionResult Create()
+        {
+            return View();
+        }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Cliente cliente)
         {
-            if (!ModelState.IsValid) return View(cliente);
-            await _repository.AddAsync(cliente);
-            return RedirectToAction(nameof(Index));
+            if (ModelState.IsValid)
+            {
+                _context.Add(cliente);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(cliente);
         }
 
-        public async Task<IActionResult> Edit(int id) => View(await _repository.GetByIdAsync(id));
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var cliente = await _context.Clientes.FindAsync(id);
+            if (cliente == null) return NotFound();
+
+            return View(cliente);
+        }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(Cliente cliente)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Cliente cliente)
         {
-            if (!ModelState.IsValid) return View(cliente);
-            await _repository.UpdateAsync(cliente);
-            return RedirectToAction(nameof(Index));
+            if (id != cliente.Id) return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                _context.Update(cliente);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(cliente);
         }
 
-        public async Task<IActionResult> Delete(int id) => View(await _repository.GetByIdAsync(id));
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Id == id);
+            if (cliente == null) return NotFound();
+
+            return View(cliente);
+        }
+
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Id == id);
+            if (cliente == null) return NotFound();
+
+            return View(cliente);
+        }
 
         [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await _repository.DeleteAsync(id);
+            var cliente = await _context.Clientes.FindAsync(id);
+            _context.Clientes.Remove(cliente);
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
     }
