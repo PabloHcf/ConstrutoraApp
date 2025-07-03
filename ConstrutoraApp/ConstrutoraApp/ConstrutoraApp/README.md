@@ -29,4 +29,3 @@ dotnet run
 ## Autor
 
 Pablo  
-Projeto desenvolvido para fins educacionais
